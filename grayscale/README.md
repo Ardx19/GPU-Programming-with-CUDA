@@ -2,69 +2,71 @@
 High-Performance Batch Image Grayscaling via CUDA
 ==================================================
 
+Table of Contents
+-----------------
+- [Abstract](#abstract)
+- [System Requirements](#system-requirements)
+- [Directory Structure](#directory-structure)
+- [Installation and Setup](#installation-and-setup)
+- [Usage](#usage)
+- [Cleanup](#cleanup)
+
 Abstract
 --------
-This project presents a high-performance application for the batch conversion of color images to grayscale, leveraging the parallel computing architecture of NVIDIA's CUDA platform. The program is engineered to systematically process a collection of images located within a designated input directory, utilizing GPU acceleration to perform the computationally intensive conversion tasks. The resulting grayscale images are subsequently stored in a specified output directory. This implementation serves as a practical demonstration of GPU-accelerated image processing, conforming to the structural requirements of the course project template.
+This project presents a high-performance application for batch conversion of color images to grayscale, leveraging the parallel computing architecture of NVIDIA's CUDA platform. The program processes a collection of images from a designated input directory using GPU acceleration and saves the resulting grayscale images to a specified output directory. This serves as a practical demonstration of GPU-accelerated image processing.
 
 System Requirements
 -------------------
-Successful compilation and execution of this software are contingent upon the following system components:
+- **NVIDIA GPU:** CUDA-capable NVIDIA graphics processing unit.
+- **NVIDIA CUDA Toolkit:** Required for the `nvcc` compiler and development libraries.
+- **stb Image Libraries:** `stb_image.h` and `stb_image_write.h` for image I/O.
 
-- NVIDIA GPU: The host system must be equipped with a CUDA-capable NVIDIA graphics processing unit.
-- NVIDIA CUDA Toolkit: A complete installation of the NVIDIA CUDA Toolkit is required to provide the necessary `nvcc` compiler and associated development libraries.
-- stb Image Libraries: The project's image I/O operations depend on the `stb_image.h` and `stb_image_write.h` single-file C/C++ libraries.
-
-Directory and File Architecture
--------------------------------
-The project adheres to the following directory structure to ensure modularity and clarity:
-
+Directory Structure
+-------------------
+```
 /
-|-- Makefile               # Facilitates the automated compilation of the project.
-|-- src/                   # Contains all source code and header files.
+|-- Makefile                 # Build automation
+|-- src/                     # Source code and headers
 |   |-- main.cu
 |   |-- grayscale.cuh
 |   |-- grayscale.cu
-|   |-- stb_image.h        # Dependency: To be acquired by the user.
-|   |-- stb_image_write.h  # Dependency: To be acquired by the user.
-|-- input_data/            # Designated directory for source color images.
-|-- output_data/           # Designated directory for generated grayscale images.
-|-- results/               # Contains documentation verifying program execution.
+|   |-- stb_image.h          # Dependency: Download from stb repo
+|   |-- stb_image_write.h    # Dependency: Download from stb repo
+|-- input_data/              # Source color images
+|-- output_data/             # Grayscale images
+|-- results/                 # Documentation/proof of execution
 |   |-- proof.md
+```
 
-Installation and Operational Procedure
---------------------------------------
-
-Step 1: Acquisition of Dependencies
------------------------------------
-The stb libraries are a prerequisite for this project. The following two files must be acquired from the official stb repository on GitHub and placed within the `src/` directory:
-
-- stb_image.h
-- stb_image_write.h
-
-Repository: https://github.com/nothings/stb
-
-Step 2: Data Ingestion
+Installation and Setup
 ----------------------
-Place all the source images intended for conversion within the `input_data/` directory.
 
-Step 3: Compilation
--------------------
-To compile the source code, open a terminal in the project root and run:
+### 1. Acquire Dependencies
+Download the following files from the [official stb repository](https://github.com/nothings/stb) and place them in the `src/` directory:
+- `stb_image.h`
+- `stb_image_write.h`
 
-    make
+### 2. Prepare Input Data
+Place all color images to be converted in the `input_data/` directory.
 
-This will invoke `nvcc` to build the project and create an executable named `grayscale_converter`.
+### 3. Compile the Project
+Open a terminal in the project root and run:
+```sh
+make
+```
+This will use `nvcc` to build the project and create the `grayscale_converter` executable.
 
-Step 4: Execution
------------------
-To run the program:
+Usage
+-----
+To run the program and convert all images in `input_data/`:
+```sh
+./grayscale_converter
+```
+The grayscale images will be saved in the `output_data/` directory.
 
-    ./grayscale_converter
-
-The application will process all image files found in the `input_data/` directory. The corresponding grayscale images will be written to `output_data/`.
-
-Step 5: Cleanup
----------------
-To remove intermediate object files and the compiled executable:
-
-    make clean
+Cleanup
+-------
+To remove intermediate object files and the executable, run:
+```sh
+make clean
+```
