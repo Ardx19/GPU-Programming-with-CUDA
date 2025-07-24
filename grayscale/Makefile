@@ -1,32 +1,27 @@
-# Makefile for CUDA Grayscale Converter
-
 # Compiler
 NVCC = nvcc
 
-# Compiler flags
-# -O3 for optimization
-# -arch=sm_35 for compute capability 3.5 (Kepler), a common baseline.
-# Adjust -arch as needed for your specific GPU.
-NVCC_FLAGS = -O3 -arch=sm_35
+# Compiler flags - using a common compute capability for broad compatibility
+NVCC_FLAGS = -O3 -arch=sm_52
 
 # Executable name
 EXE = grayscale_converter
 
-# Source files
+# Source files located in the src directory
 SRCS = src/main.cu src/grayscale.cu
 
-# Object files
+# Object files derived from source files
 OBJS = $(SRCS:.cu=.o)
 
-# Default target
+# Default target to build the executable
 all: $(EXE)
 
-# Link object files to create the executable
+# Link object files into the final executable
 $(EXE): $(OBJS)
 	$(NVCC) $(NVCC_FLAGS) -o $@ $^
 
-# Compile .cu source files into .o object files
-%.o: %.cu
+# Compile CUDA source files into object files
+src/%.o: src/%.cu src/grayscale.cuh
 	$(NVCC) $(NVCC_FLAGS) -c -o $@ $<
 
 # Clean up build files
