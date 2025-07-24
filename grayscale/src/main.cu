@@ -1,10 +1,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <dirent.h> // For directory reading
+#include <dirent.h>
+#include <sys/stat.h> // Required for directory creation
 
-// Define STB_IMAGE_IMPLEMENTATION and STB_IMAGE_WRITE_IMPLEMENTATION
-// in exactly one C or C++ file to create the implementation.
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -20,16 +19,31 @@ void checkCuda(cudaError_t result) {
     }
 }
 
+// Function to create a directory if it doesn't exist
+void createDirectory(const std::string& path) {
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0) {
+        mkdir(path.c_str(), 0755);
+    } else if (!(info.st_mode & S_IFDIR)) {
+        fprintf(stderr, "Error: %s is not a directory!\n", path.c_str());
+        exit(1);
+    }
+}
+
+
 int main() {
     const std::string input_dir = "input_data";
     const std::string output_dir = "output_data";
 
+    // Create output directory if it doesn't exist
+    createDirectory(output_dir);
+
     DIR *dir;
     struct dirent *ent;
-    
+
     if ((dir = opendir(input_dir.c_str())) != NULL) {
         std::cout << "Starting batch image processing..." << std::endl;
-        
+
         // Iterate over all the files in the input directory
         while ((ent = readdir(dir)) != NULL) {
             std::string filename = ent->d_name;
@@ -38,7 +52,7 @@ int main() {
             }
 
             std::string input_path = input_dir + "/" + filename;
-            
+
             // 1. Load image from disk using stb_image
             int width, height, channels;
             unsigned char *h_input_img = stbi_load(input_path.c_str(), &width, &height, &channels, 0);
@@ -72,19 +86,22 @@ int main() {
 
             // 4. Launch the CUDA kernel
             convertToGrayscale(d_input_img, d_output_gray_img, width, height, channels);
-            
+
             // Check for any errors during kernel execution
             checkCuda(cudaGetLastError());
             checkCuda(cudaDeviceSynchronize());
 
             // 5. Copy the result back from device to host
             checkCuda(cudaMemcpy(h_output_gray_img, d_output_gray_img, gray_img_size, cudaMemcpyDeviceToHost));
-            
+
             // 6. Save the grayscale image to disk
             std::string output_path = output_dir + "/gray_" + filename;
             // Save as PNG to avoid compression artifacts and handle single channel easily
-            if (output_path.find(".jpg") != std::string::npos) {
-                 output_path.replace(output_path.find(".jpg"), 4, ".png");
+            size_t dot_pos = output_path.find_last_of(".");
+            if (dot_pos != std::string::npos) {
+                 output_path.replace(dot_pos, output_path.length() - dot_pos, ".png");
+            } else {
+                 output_path += ".png";
             }
             stbi_write_png(output_path.c_str(), width, height, 1, h_output_gray_img, width * sizeof(unsigned char));
 
@@ -97,7 +114,7 @@ int main() {
         closedir(dir);
         std::cout << "Processing complete. Results are in the 'output_data' directory." << std::endl;
     } else {
-        std::cerr << "Error: Could not open input directory '" << input_dir << "'" << std::endl;
+        std::cerr << "Error: Could not open input directory '" << input_dir << "'. Please create it and add images." << std::endl;
         return EXIT_FAILURE;
     }
 
